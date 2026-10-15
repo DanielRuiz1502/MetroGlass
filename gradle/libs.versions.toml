@@ -1,4 +1,5 @@
 [versions]
+haze = "2.0.1"
 androidGradlePlugin = "9.4.1"
 browser = "1.10.0"
 robolectric = "4.17"
@@ -36,6 +37,10 @@ tinypinyin = "2.0.3"
 protobuf = "4.36.2"
 
 [libraries]
+haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+haze-blur = { module = "dev.chrisbanes.haze:haze-blur", version.ref = "haze" }
+compose-ui-test = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "compose" }
+compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "coroutinesGuava" }
 
