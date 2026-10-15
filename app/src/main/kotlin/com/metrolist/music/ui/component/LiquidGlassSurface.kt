@@ -29,17 +29,17 @@ val LiquidGlassContentColor = Color(0xFFF5F5F7)
 private val SmokedGlassStyle = HazeBlurStyle {
     // Enable Haze's real RenderScript blur on API 26–30 as well as RenderEffect on 31+.
     blurEnabled(true)
-    blurRadius(20.dp)
+    blurRadius(24.dp)
     noiseFactor(0f)
     backgroundColor(Color(0xFF151518))
-    colorEffects(listOf(HazeColorEffect.tint(Color(0xFF202024).copy(alpha = 0.72f))))
+    colorEffects(listOf(HazeColorEffect.tint(Color(0xFF202024).copy(alpha = 0.58f))))
 }
 
 private val GlassReflection = Brush.verticalGradient(
-    listOf(Color.White.copy(alpha = 0.045f), Color.Transparent, Color.White.copy(alpha = 0.015f)),
+    listOf(Color.White.copy(alpha = 0.06f), Color.Transparent, Color.White.copy(alpha = 0.025f)),
 )
 private val GlassEdge = Brush.verticalGradient(
-    listOf(Color.White.copy(alpha = 0.20f), Color.White.copy(alpha = 0.035f), Color.White.copy(alpha = 0.10f)),
+    listOf(Color.White.copy(alpha = 0.25f), Color.White.copy(alpha = 0.05f), Color.White.copy(alpha = 0.13f)),
 )
 
 @Composable

@@ -13,6 +13,16 @@ import androidx.compose.ui.test.performClick
 import com.metrolist.music.ui.screens.Screens
 import dev.chrisbanes.haze.rememberHazeState
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
+
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -86,6 +96,41 @@ class LiquidGlassNavigationTest {
         assertEquals(2, clicks)
         assertEquals(1, searchHolds)
         assertEquals(1, homeHolds)
+    }
+
+    @Test fun glassIndicatorMovesBetweenTabsAndStaysAtTheDestination() {
+        var route by mutableStateOf("home")
+        compose.mainClock.autoAdvance = false
+        compose.setContent {
+            MaterialTheme {
+                CompositionLocalProvider(LocalLiquidGlassState provides rememberHazeState()) {
+                    AppNavigationBar(
+                        navigationItems = listOf(Screens.Home, Screens.Search, Screens.Library),
+                        currentRoute = route,
+                        onItemClick = { screen, _ -> route = screen.route },
+                        modifier = Modifier.width(360.dp),
+                    )
+                }
+            }
+        }
+        val indicator = compose.onNodeWithTag("navigation_glass_indicator")
+        val start = indicator.getUnclippedBoundsInRoot()
+        compose.onNodeWithText("Library").performClick()
+        compose.mainClock.advanceTimeByFrame()
+        compose.runOnIdle { }
+        compose.mainClock.advanceTimeByFrame()
+        compose.runOnIdle { }
+        compose.mainClock.advanceTimeBy(130)
+        compose.waitForIdle()
+        val middle = indicator.getUnclippedBoundsInRoot()
+        compose.mainClock.advanceTimeBy(300)
+        compose.waitForIdle()
+        val end = indicator.getUnclippedBoundsInRoot()
+        assertTrue("start=$start middle=$middle end=$end", middle.left > start.left && middle.left < end.left)
+        val library = compose.onNodeWithText("Library").getUnclippedBoundsInRoot()
+        assertEquals(((library.left + library.right) / 2).value, ((end.left + end.right) / 2).value, 1f)
+        compose.mainClock.advanceTimeBy(500)
+        assertEquals(end, indicator.getUnclippedBoundsInRoot())
     }
 
 }

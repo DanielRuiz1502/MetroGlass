@@ -338,7 +338,7 @@ private fun NewMiniPlayer(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(10.dp))
 
                 // Song info - isolated composable
                 NewMiniPlayerSongInfo(
@@ -348,7 +348,7 @@ private fun NewMiniPlayer(
                     modifier = Modifier.weight(1f),
                 )
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(4.dp))
 
                 // Cast indicator
                 if (isCasting) {
@@ -376,7 +376,7 @@ private fun NewMiniPlayer(
 }
 
 @Composable
-private fun NewMiniPlayerSongInfo(
+internal fun NewMiniPlayerSongInfo(
     mediaMetadata: MediaMetadata?,
     onSurfaceColor: Color,
     errorColor: Color,
@@ -385,32 +385,36 @@ private fun NewMiniPlayerSongInfo(
     val error by LocalPlayerConnection.current?.error?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(null) }
 
     Column(
-        modifier = modifier,
+        modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
     ) {
         mediaMetadata?.let { metadata ->
             Text(
                 text = metadata.title,
                 color = onSurfaceColor,
-                fontSize = 16.sp,
+                style = MaterialTheme.typography.bodyMedium,
+                fontSize = if (error != null) 14.sp else 16.sp,
+                lineHeight = if (error != null) 18.sp else 20.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Clip,
                 modifier = Modifier.basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp),
             )
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (metadata.explicit) MIcon.Explicit()
-                 if (metadata.artists.any { it.name.isNotBlank() }) {
-                     Text(
-                         text = metadata.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
-                         color = onSurfaceColor.copy(alpha = 0.7f),
+                if (metadata.artists.any { it.name.isNotBlank() }) {
+                    Text(
+                        text = metadata.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
+                        color = onSurfaceColor.copy(alpha = 0.75f),
+                        style = MaterialTheme.typography.bodySmall,
                         fontSize = 13.sp,
+                        lineHeight = if (error != null) 16.sp else 18.sp,
                         maxLines = 1,
-                        overflow = TextOverflow.Clip,
-                        modifier = Modifier.basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp),
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
@@ -420,6 +424,7 @@ private fun NewMiniPlayerSongInfo(
                     text = stringResource(R.string.error_playing),
                     color = errorColor,
                     fontSize = 10.sp,
+                    lineHeight = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -774,12 +779,13 @@ private fun LegacyMiniMediaInfo(
             modifier =
                 Modifier
                     .weight(1f)
-                    .padding(horizontal = 6.dp),
+                    .padding(horizontal = 4.dp),
         ) {
             Text(
                 text = mediaMetadata.title,
                 color = Color.White,
                 fontSize = 16.sp,
+                lineHeight = 20.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -791,6 +797,7 @@ private fun LegacyMiniMediaInfo(
                      text = mediaMetadata.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
                      color = Color.LightGray,
                     fontSize = 12.sp,
+                    lineHeight = 16.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
