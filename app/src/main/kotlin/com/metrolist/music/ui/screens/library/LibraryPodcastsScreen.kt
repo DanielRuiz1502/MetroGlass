@@ -80,6 +80,7 @@ import com.metrolist.music.db.entities.SpeedDialItem
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.ui.component.ChipsRow
+import com.metrolist.music.ui.component.liquidGlassSource
 import com.metrolist.music.ui.component.HideOnScrollFAB
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.Material3MenuGroup
@@ -215,6 +216,7 @@ fun LibraryPodcastsScreen(
             PodcastFilter.EPISODES -> {
                 LazyColumn(
                     state = lazyListState,
+                    modifier = Modifier.liquidGlassSource(),
                     contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
                 ) {
                     item(key = "filter", contentType = CONTENT_TYPE_HEADER) {
@@ -277,6 +279,7 @@ fun LibraryPodcastsScreen(
             PodcastFilter.CHANNELS -> {
                 LazyColumn(
                     state = lazyListState,
+                    modifier = Modifier.liquidGlassSource(),
                     contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
                 ) {
                     item(key = "filter", contentType = CONTENT_TYPE_HEADER) {
@@ -345,6 +348,7 @@ fun LibraryPodcastsScreen(
             PodcastFilter.DOWNLOADED -> {
                 LazyColumn(
                     state = lazyListState,
+                    modifier = Modifier.liquidGlassSource(),
                     contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
                 ) {
                     item(key = "filter", contentType = CONTENT_TYPE_HEADER) {

@@ -16,13 +16,10 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,27 +55,28 @@ fun BoxScope.HideOnScrollFAB(
             modifier = Modifier.padding(16.dp)
         ) {
             if (onRecognitionClick != null) {
-                SmallFloatingActionButton(
+                LiquidGlassIconButton(
+                    icon = R.drawable.mic,
+                    contentDescription = stringResource(R.string.recognize_music),
                     onClick = onRecognitionClick,
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.mic),
-                        contentDescription = stringResource(R.string.recognize_music),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+                )
                 Spacer(modifier = Modifier.height(12.dp))
             }
-            FloatingActionButton(
-                onClick = onClick,
-            ) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null,
+            if (icon == R.drawable.shuffle || icon == R.drawable.mic) {
+                LiquidGlassIconButton(
+                    icon = icon,
+                    contentDescription = stringResource(
+                        if (icon == R.drawable.mic) R.string.recognize_music else R.string.shuffle,
+                    ),
+                    onClick = onClick,
                 )
+            } else {
+                FloatingActionButton(onClick = onClick) {
+                    Icon(
+                        painter = painterResource(icon),
+                        contentDescription = null,
+                    )
+                }
             }
         }
     }

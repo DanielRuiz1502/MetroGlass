@@ -80,6 +80,7 @@ import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.ui.component.ChipsRow
 import com.metrolist.music.ui.component.DefaultDialog
+import com.metrolist.music.ui.component.liquidGlassSource
 import com.metrolist.music.ui.component.HideOnScrollFAB
 import com.metrolist.music.ui.component.LibrarySearchEmptyPlaceholder
 import com.metrolist.music.ui.component.LibrarySearchHeader
@@ -326,6 +327,7 @@ fun LibrarySongsScreen(
     ) {
         LazyColumn(
             state = lazyListState,
+            modifier = Modifier.liquidGlassSource(),
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
         ) {
             item(

@@ -64,6 +64,7 @@ import com.metrolist.music.constants.SearchSource
 import com.metrolist.music.constants.SearchSourceKey
 import com.metrolist.music.db.entities.SearchHistory
 import com.metrolist.music.playback.queues.YouTubeQueue
+import com.metrolist.music.ui.component.liquidGlassSource
 import com.metrolist.music.ui.component.HideOnScrollFAB
 import com.metrolist.music.utils.SearchRoutes
 import com.metrolist.music.utils.rememberEnumPreference
@@ -285,23 +286,25 @@ fun SearchScreen(
                     .padding(top = paddingValues.calculateTopPadding())
                     .fillMaxSize(),
         ) {
-            when (searchSource) {
-                SearchSource.LOCAL -> {
-                    LocalSearchScreen(
-                        query = query.text,
-                        onDismiss = { navController.navigateUp() },
-                        pureBlack = pureBlack,
-                    )
-                }
+            Box(Modifier.fillMaxSize().liquidGlassSource()) {
+                when (searchSource) {
+                    SearchSource.LOCAL -> {
+                        LocalSearchScreen(
+                            query = query.text,
+                            onDismiss = { navController.navigateUp() },
+                            pureBlack = pureBlack,
+                        )
+                    }
 
-                SearchSource.ONLINE -> {
-                    OnlineSearchScreen(
-                        query = query.text,
-                        onQueryChange = { query = it },
-                        onSearch = onSearchFromSuggestion,
-                        onDismiss = { /* Don't dismiss when searching from suggestions */ },
-                        pureBlack = pureBlack,
-                    )
+                    SearchSource.ONLINE -> {
+                        OnlineSearchScreen(
+                            query = query.text,
+                            onQueryChange = { query = it },
+                            onSearch = onSearchFromSuggestion,
+                            onDismiss = { /* Don't dismiss when searching from suggestions */ },
+                            pureBlack = pureBlack,
+                        )
+                    }
                 }
             }
 
