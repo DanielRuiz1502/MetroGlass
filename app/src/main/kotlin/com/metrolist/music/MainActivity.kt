@@ -77,6 +77,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -170,6 +171,7 @@ import com.metrolist.music.playback.MusicService.MusicBinder
 import com.metrolist.music.playback.PlayerConnection
 import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.ui.component.AccountSettingsDialog
+import com.metrolist.music.ui.component.LocalLiquidGlassSources
 import com.metrolist.music.ui.component.LocalLiquidGlassState
 import dev.chrisbanes.haze.rememberHazeState
 import dev.chrisbanes.haze.hazeSource
@@ -960,8 +962,10 @@ class MainActivity : FragmentActivity() {
                 val artistNameAliases by ArtistNameAliases.aliases.collectAsStateWithLifecycle()
 
                 val glassState = rememberHazeState()
+                val glassSources = remember { mutableStateSetOf<Any>() }
                 CompositionLocalProvider(
                     LocalLiquidGlassState provides glassState,
+                    LocalLiquidGlassSources provides glassSources,
                     LocalDatabase provides database,
                     LocalNavController provides navController,
                     LocalContentColor provides if (pureBlack) Color.White else contentColorFor(MaterialTheme.colorScheme.surface),
@@ -1191,7 +1195,10 @@ class MainActivity : FragmentActivity() {
                                 .fillMaxSize()
                                 .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
                     ) {
-                        Row(Modifier.fillMaxSize().hazeSource(glassState)) {
+                        // Screen sources exclude floating glass controls from their own backdrop.
+                        Row(Modifier.fillMaxSize().then(
+                            if (glassSources.isEmpty()) Modifier.hazeSource(glassState) else Modifier,
+                        )) {
                             val onRailItemClick: (Screens, Boolean) -> Unit =
                                 remember(navController, coroutineScope, topAppBarScrollBehavior, playerBottomSheetState) {
                                     { screen: Screens, isSelected: Boolean ->

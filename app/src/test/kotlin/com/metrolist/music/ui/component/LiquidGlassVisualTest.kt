@@ -1,6 +1,7 @@
 package com.metrolist.music.ui.component
 
 import android.app.Application
+import com.metrolist.music.R
 import com.metrolist.music.LocalPlayerConnection
 import android.graphics.Bitmap
 import androidx.compose.foundation.background
@@ -68,10 +69,17 @@ class LiquidGlassVisualTest {
             MaterialTheme {
                 val haze = rememberHazeState()
                 CompositionLocalProvider(LocalLiquidGlassState provides haze, LocalPlayerConnection provides null) {
-                    Box(Modifier.width(360.dp).height(184.dp).background(Color.Black).testTag("glass_review")) {
+                    Box(Modifier.width(360.dp).height(320.dp).background(Color.Black).testTag("glass_review")) {
                         Box(Modifier.fillMaxSize().hazeSource(haze).background(
                             Brush.horizontalGradient(backdrop),
                         ))
+                        Column(
+                            Modifier.align(Alignment.TopEnd).padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            LiquidGlassIconButton(R.drawable.mic, "Recognize music", {})
+                            LiquidGlassIconButton(R.drawable.shuffle, "Shuffle", {})
+                        }
                         Column(Modifier.align(Alignment.BottomCenter), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             LiquidGlassSurface(Modifier.padding(horizontal = 20.dp).fillMaxWidth().height(64.dp)) {
                                 Row(Modifier.fillMaxSize().padding(MiniPlayerContentPadding), verticalAlignment = Alignment.CenterVertically) {
@@ -98,7 +106,7 @@ class LiquidGlassVisualTest {
         val output = File(System.getProperty("metroglass.visualOutputDir") ?: "build/outputs/liquid-glass-review")
         output.mkdirs()
         for ((name, colors) in backdrops) {
-            for (destination in listOf("home", "library")) {
+            for (destination in listOf("home", "search_input", "library")) {
                 compose.runOnIdle { route = destination; backdrop = colors }
                 compose.waitForIdle()
                 val suffix = if (name == "smoked") destination else "$name-$destination"

@@ -5,12 +5,26 @@
 
 package com.metrolist.music.ui.component
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellation
+import androidx.compose.foundation.gestures.horizontalDrag
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -173,30 +187,50 @@ fun AppNavigationBar(
     onSearchLongClick: (() -> Unit)? = null,
     onHomeLongHold: (() -> Unit)? = null,
 ) {
+    if (navigationItems.isEmpty()) return
     val haptics = LocalHapticFeedback.current
     val viewConfiguration = LocalViewConfiguration.current
 
     Box(modifier = modifier.padding(horizontal = GlassHorizontalMargin).padding(bottom = GlassBottomSpacing)) {
-        LiquidGlassSurface(Modifier.fillMaxWidth().align(Alignment.TopCenter)) {
+        LiquidGlassSurface(Modifier.fillMaxWidth().align(Alignment.TopCenter).testTag("navigation_glass_bar")) {
             BoxWithConstraints(
                 Modifier.fillMaxWidth().height(if (slimNav) SlimNavBarHeight else NavigationBarHeight),
             ) {
                 val selectedIndex = navigationItems.indexOfFirst {
                     isRouteSelected(currentRoute, it.route, navigationItems)
                 }
-                val indicatorPosition = animateFloatAsState(
-                    targetValue = selectedIndex.coerceAtLeast(0).toFloat(),
-                    animationSpec = tween(260, easing = FastOutSlowInEasing),
-                    label = "glassNavigationIndicator",
-                )
+                val currentSelectedIndex by rememberUpdatedState(selectedIndex)
+                val currentOnItemClick by rememberUpdatedState(onItemClick)
+                val indicatorPosition = remember { Animatable(selectedIndex.coerceAtLeast(0).toFloat()) }
+                var dragPosition by remember { mutableStateOf<Float?>(null) }
+                var settlingJob by remember { mutableStateOf<Job?>(null) }
+                var longPressIndex by remember { mutableIntStateOf(-1) }
+                val scope = rememberCoroutineScope()
+                val settleSpec = remember { spring<Float>(dampingRatio = 0.9f, stiffness = 500f) }
+                val slotWidth = maxWidth / navigationItems.size
+                val slotWidthPx = with(LocalDensity.current) { slotWidth.toPx() }
+                val insetPx = with(LocalDensity.current) { 8.dp.toPx() }
+                val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+                val selectItem: (Screens, Boolean) -> Unit = { screen, selected ->
+                    settlingJob?.cancel()
+                    dragPosition = null
+                    settlingJob = scope.launch {
+                        indicatorPosition.animateTo(navigationItems.indexOf(screen).toFloat(), settleSpec)
+                    }
+                    currentOnItemClick(screen, selected)
+                }
+                LaunchedEffect(selectedIndex) {
+                    settlingJob?.cancel()
+                    dragPosition = null
+                    indicatorPosition.animateTo(selectedIndex.coerceAtLeast(0).toFloat(), settleSpec)
+                }
                 if (selectedIndex >= 0) {
-                    val slotWidth = maxWidth / navigationItems.size
                     Box(
                         Modifier
-                            .offset { IntOffset((slotWidth.toPx() * indicatorPosition.value).roundToInt(), 0) }
+                            .offset { IntOffset((slotWidth.toPx() * (dragPosition ?: indicatorPosition.value).coerceIn(0f, navigationItems.lastIndex.toFloat())).roundToInt(), 0) }
                             .width(slotWidth)
                             .fillMaxHeight()
-                            .padding(horizontal = 4.dp, vertical = 8.dp)
+                            .padding(8.dp)
                             .clip(CircleShape)
                             .background(LiquidGlassSelectionFill)
                             .border(0.5.dp, LiquidGlassSelectionEdge, CircleShape)
@@ -204,10 +238,59 @@ fun AppNavigationBar(
                     )
                 }
                 Row(
-                    modifier = Modifier.matchParentSize().selectableGroup(),
+                    modifier = Modifier.matchParentSize().selectableGroup()
+                        .pointerInput(navigationItems, slotWidthPx, insetPx, isRtl) {
+                            fun settle(completed: Boolean) {
+                                val position = dragPosition ?: return
+                                val target = if (completed) position.roundToInt() else currentSelectedIndex
+                                settlingJob?.cancel()
+                                settlingJob = scope.launch {
+                                    indicatorPosition.snapTo(position)
+                                    dragPosition = null
+                                    indicatorPosition.animateTo(target.coerceAtLeast(0).toFloat(), settleSpec)
+                                    if (completed && target != currentSelectedIndex) {
+                                        currentOnItemClick(navigationItems[target], false)
+                                    }
+                                }
+                            }
+                            awaitEachGesture {
+                                val down = awaitFirstDown(requireUnconsumed = false)
+                                val x = if (isRtl) size.width - down.position.x else down.position.x
+                                val left = (dragPosition ?: indicatorPosition.value) * slotWidthPx + insetPx
+                                if (currentSelectedIndex < 0 || x !in left..(left + slotWidthPx - 2 * insetPx) ||
+                                    down.position.y !in insetPx..(size.height - insetPx)) return@awaitEachGesture
+                                var started = false
+                                try {
+                                    val drag = awaitHorizontalTouchSlopOrCancellation(down.id) { change, overSlop ->
+                                        if (longPressIndex != currentSelectedIndex) {
+                                            settlingJob?.cancel()
+                                            scope.launch { indicatorPosition.stop() }
+                                            dragPosition = (indicatorPosition.value +
+                                                (if (isRtl) -overSlop else overSlop) / slotWidthPx)
+                                                .coerceIn(0f, navigationItems.lastIndex.toFloat())
+                                            started = true
+                                            change.consume()
+                                        }
+                                    }
+                                    if (drag != null && started) {
+                                        val completed = horizontalDrag(drag.id) { change ->
+                                            val delta = change.position.x - change.previousPosition.x
+                                            dragPosition = ((dragPosition ?: indicatorPosition.value) +
+                                                (if (isRtl) -delta else delta) / slotWidthPx)
+                                                .coerceIn(0f, navigationItems.lastIndex.toFloat())
+                                            change.consume()
+                                        }
+                                        settle(completed)
+                                        started = false
+                                    }
+                                } finally {
+                                    if (started) settle(completed = false)
+                                }
+                            }
+                        },
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    navigationItems.forEach { screen ->
+                    navigationItems.forEachIndexed { index, screen ->
                         val isSelected = remember(currentRoute, screen.route) {
                             isRouteSelected(currentRoute, screen.route, navigationItems)
                         }
@@ -228,14 +311,16 @@ fun AppNavigationBar(
                                     when (interaction) {
                                         is PressInteraction.Press -> {
                                             isLongClick = false
+                                            longPressIndex = -1
                                             delay(if (isHomeHoldItem) 15_000L else viewConfiguration.longPressTimeoutMillis)
                                             isLongClick = true
+                                            longPressIndex = index
                                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                             if (isHomeHoldItem) onHomeLongHold.invoke() else onSearchLongClick?.invoke()
                                         }
                                         is PressInteraction.Release -> {
                                             if (!isLongClick) {
-                                                onItemClick(screen, currentIsSelected)
+                                                selectItem(screen, currentIsSelected)
                                             }
                                         }
                                         is PressInteraction.Cancel -> {
@@ -257,7 +342,7 @@ fun AppNavigationBar(
                                 .clip(CircleShape)
                                 .semantics {
                                     if (isSearchItem || isHomeHoldItem) {
-                                        onClick { onItemClick(screen, currentIsSelected); true }
+                                        onClick { selectItem(screen, currentIsSelected); true }
                                         onLongClick {
                                             if (isHomeHoldItem) onHomeLongHold?.invoke() else onSearchLongClick?.invoke()
                                             true
@@ -270,7 +355,7 @@ fun AppNavigationBar(
                                     interactionSource = interactionSource,
                                     indication = androidx.compose.foundation.LocalIndication.current,
                                     onClick = {
-                                        if (!isSearchItem && !isHomeHoldItem) onItemClick(screen, currentIsSelected)
+                                        if (!isSearchItem && !isHomeHoldItem) selectItem(screen, currentIsSelected)
                                     },
                                 ),
                             horizontalAlignment = Alignment.CenterHorizontally,

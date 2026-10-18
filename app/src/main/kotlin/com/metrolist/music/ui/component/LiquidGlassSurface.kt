@@ -1,26 +1,52 @@
 package com.metrolist.music.ui.component
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.SnapshotStateSet
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazePerformanceMode
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.blur.HazeBlurStyle
 import dev.chrisbanes.haze.blur.HazeColorEffect
 import dev.chrisbanes.haze.blur.hazeBlur
 
 val LocalLiquidGlassState = staticCompositionLocalOf<HazeState> {
     error("Liquid glass requires the screen's shared Haze source")
+}
+
+val LocalLiquidGlassSources = staticCompositionLocalOf<SnapshotStateSet<Any>?> { null }
+
+// Replace the whole-screen capture while a screen captures content below its glass controls.
+@Composable
+fun Modifier.liquidGlassSource(): Modifier {
+    val sources = LocalLiquidGlassSources.current
+    val key = remember { Any() }
+    DisposableEffect(sources, key) {
+        sources?.add(key)
+        onDispose { sources?.remove(key) }
+    }
+    return hazeSource(LocalLiquidGlassState.current)
 }
 
 val LiquidGlassActiveColor = Color(0xFF009DFF)
@@ -67,4 +93,26 @@ fun LiquidGlassSurface(
             .border(0.5.dp, GlassEdge, CircleShape),
         content = content,
     )
+}
+
+@Composable
+fun LiquidGlassIconButton(
+    @DrawableRes icon: Int,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LiquidGlassSurface(modifier.size(56.dp)) {
+        Box(
+            Modifier.fillMaxSize().clickable(role = Role.Button, onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = contentDescription,
+                tint = LiquidGlassContentColor,
+                modifier = Modifier.size(24.dp),
+            )
+        }
+    }
 }

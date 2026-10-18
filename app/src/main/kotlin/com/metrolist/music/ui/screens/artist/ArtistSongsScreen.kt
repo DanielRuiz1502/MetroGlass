@@ -47,6 +47,7 @@ import com.metrolist.music.constants.CONTENT_TYPE_HEADER
 import com.metrolist.music.constants.HideExplicitKey
 import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.playback.queues.ListQueue
+import com.metrolist.music.ui.component.liquidGlassSource
 import com.metrolist.music.ui.component.HideOnScrollFAB
 import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.LocalMenuState
@@ -91,6 +92,7 @@ fun ArtistSongsScreen(
     ) {
         LazyColumn(
             state = lazyListState,
+            modifier = Modifier.liquidGlassSource(),
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
         ) {
             item(
