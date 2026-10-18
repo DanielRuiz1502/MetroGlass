@@ -159,6 +159,10 @@ android {
         }
     }
 
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -315,6 +319,11 @@ dependencies {
 
     implementation(libs.timber)
 
+    implementation(libs.haze)
+    implementation(libs.haze.blur)
+
+    testImplementation(libs.compose.ui.test)
+    debugImplementation(libs.compose.ui.test.manifest)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
