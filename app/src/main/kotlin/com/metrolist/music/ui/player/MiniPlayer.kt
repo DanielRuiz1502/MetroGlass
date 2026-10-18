@@ -26,6 +26,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -107,6 +108,8 @@ import com.metrolist.music.utils.rememberPreference
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
+
+internal val MiniPlayerContentPadding = PaddingValues(start = 16.dp, top = 2.dp, end = 10.dp, bottom = 2.dp)
 
 /**
  * Stable wrapper for progress state - reads values only during draw phase
@@ -312,7 +315,7 @@ private fun NewMiniPlayer(
             })
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxSize().padding(MiniPlayerContentPadding),
             ) {
                 Box {
                     AsyncImage(
@@ -408,7 +411,7 @@ internal fun NewMiniPlayerSongInfo(
                 if (metadata.artists.any { it.name.isNotBlank() }) {
                     Text(
                         text = metadata.artists.joinToArtistString(" ${stringResource(R.string.and)} ") { it.name },
-                        color = onSurfaceColor.copy(alpha = 0.75f),
+                        color = onSurfaceColor.copy(alpha = 0.80f),
                         style = MaterialTheme.typography.bodySmall,
                         fontSize = 13.sp,
                         lineHeight = if (error != null) 16.sp else 18.sp,

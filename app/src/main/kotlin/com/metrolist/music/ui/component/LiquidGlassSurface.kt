@@ -32,7 +32,7 @@ private val SmokedGlassStyle = HazeBlurStyle {
     blurRadius(24.dp)
     noiseFactor(0f)
     backgroundColor(Color(0xFF151518))
-    colorEffects(listOf(HazeColorEffect.tint(Color(0xFF202024).copy(alpha = 0.58f))))
+    colorEffects(listOf(HazeColorEffect.tint(Color(0xFF202024).copy(alpha = 0.55f))))
 }
 
 private val GlassReflection = Brush.verticalGradient(
@@ -40,6 +40,14 @@ private val GlassReflection = Brush.verticalGradient(
 )
 private val GlassEdge = Brush.verticalGradient(
     listOf(Color.White.copy(alpha = 0.25f), Color.White.copy(alpha = 0.05f), Color.White.copy(alpha = 0.13f)),
+)
+
+// Selection uses the surface's captured blur without adding another blur pass.
+internal val LiquidGlassSelectionFill = Brush.verticalGradient(
+    listOf(Color.White.copy(alpha = 0.12f), Color.White.copy(alpha = 0.045f), Color.White.copy(alpha = 0.075f)),
+)
+internal val LiquidGlassSelectionEdge = Brush.verticalGradient(
+    listOf(Color.White.copy(alpha = 0.30f), Color.White.copy(alpha = 0.06f), Color.White.copy(alpha = 0.16f)),
 )
 
 @Composable

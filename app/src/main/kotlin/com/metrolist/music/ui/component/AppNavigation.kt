@@ -20,7 +20,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntOffset
 import kotlin.math.roundToInt
@@ -67,14 +66,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.metrolist.music.ui.screens.Screens
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-
-// The indicator shares the bar's captured blur instead of running a third blur pass.
-private val NavigationBubbleFill = Brush.verticalGradient(
-    listOf(Color.White.copy(alpha = 0.15f), Color.White.copy(alpha = 0.065f), Color.White.copy(alpha = 0.10f)),
-)
-private val NavigationBubbleEdge = Brush.verticalGradient(
-    listOf(Color.White.copy(alpha = 0.32f), Color.White.copy(alpha = 0.07f), Color.White.copy(alpha = 0.18f)),
-)
 
 @Stable
 private fun isRouteSelected(currentRoute: String?, screenRoute: String, navigationItems: List<Screens>): Boolean {
@@ -207,8 +198,8 @@ fun AppNavigationBar(
                             .fillMaxHeight()
                             .padding(horizontal = 4.dp, vertical = 8.dp)
                             .clip(CircleShape)
-                            .background(NavigationBubbleFill)
-                            .border(0.5.dp, NavigationBubbleEdge, CircleShape)
+                            .background(LiquidGlassSelectionFill)
+                            .border(0.5.dp, LiquidGlassSelectionEdge, CircleShape)
                             .testTag("navigation_glass_indicator"),
                     )
                 }

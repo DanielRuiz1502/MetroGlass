@@ -34,6 +34,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.models.MediaMetadata
 import com.metrolist.music.ui.player.MiniPlayerControlsContent
+import com.metrolist.music.ui.player.MiniPlayerContentPadding
 import com.metrolist.music.ui.player.NewMiniPlayerSongInfo
 import com.metrolist.music.ui.screens.Screens
 import dev.chrisbanes.haze.hazeSource
@@ -56,17 +57,24 @@ class LiquidGlassVisualTest {
 
     @Test fun recordGlassIndicatorAndArtistLayout() {
         var route by mutableStateOf("home")
+        val backdrops = listOf(
+            "smoked" to listOf(Color(0xFF633E49), Color(0xFF163840), Color(0xFF312447)),
+            "light" to listOf(Color.White, Color(0xFFECEFF1), Color.White),
+            "dark" to listOf(Color.Black, Color(0xFF181818), Color.Black),
+            "colorful" to listOf(Color(0xFFFF1744), Color(0xFF00C853), Color(0xFF2979FF)),
+        )
+        var backdrop by mutableStateOf(backdrops.first().second)
         compose.setContent {
             MaterialTheme {
                 val haze = rememberHazeState()
                 CompositionLocalProvider(LocalLiquidGlassState provides haze, LocalPlayerConnection provides null) {
                     Box(Modifier.width(360.dp).height(184.dp).background(Color.Black).testTag("glass_review")) {
                         Box(Modifier.fillMaxSize().hazeSource(haze).background(
-                            Brush.horizontalGradient(listOf(Color(0xFF633E49), Color(0xFF163840), Color(0xFF312447))),
+                            Brush.horizontalGradient(backdrop),
                         ))
                         Column(Modifier.align(Alignment.BottomCenter), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             LiquidGlassSurface(Modifier.padding(horizontal = 20.dp).fillMaxWidth().height(64.dp)) {
-                                Row(Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Row(Modifier.fillMaxSize().padding(MiniPlayerContentPadding), verticalAlignment = Alignment.CenterVertically) {
                                     Box(Modifier.size(44.dp).clip(RoundedCornerShape(9.dp)).background(Color(0xFF455A64)))
                                     Spacer(Modifier.width(10.dp))
                                     NewMiniPlayerSongInfo(
@@ -89,14 +97,17 @@ class LiquidGlassVisualTest {
         }
         val output = File(System.getProperty("metroglass.visualOutputDir") ?: "build/outputs/liquid-glass-review")
         output.mkdirs()
-        for (destination in listOf("home", "library")) {
-            compose.runOnIdle { route = destination }
-            compose.waitForIdle()
-            val file = File(output, "compose-components-$destination.png")
-            file.outputStream().use {
-                assertTrue(compose.onNodeWithTag("glass_review").captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, it))
+        for ((name, colors) in backdrops) {
+            for (destination in listOf("home", "library")) {
+                compose.runOnIdle { route = destination; backdrop = colors }
+                compose.waitForIdle()
+                val suffix = if (name == "smoked") destination else "$name-$destination"
+                val file = File(output, "compose-components-$suffix.png")
+                file.outputStream().use {
+                    assertTrue(compose.onNodeWithTag("glass_review").captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, it))
+                }
+                assertTrue(file.isFile && file.length() > 0)
             }
-            assertTrue(file.isFile && file.length() > 0)
         }
     }
 }
